@@ -1,6 +1,6 @@
 const {Telegraf, Composer, Scenes, Markup, session} = require('telegraf');
 const OpenWeatherMapHelper = require("openweathermap-node");
-const WEATHER_TOKEN = "0e1f34b84f6a42aa5a6360ece2ad9340";
+const WEATHER_TOKEN = process.env.WEATHER_TOKEN;
 const translateText = require("./Translate");
 
 
