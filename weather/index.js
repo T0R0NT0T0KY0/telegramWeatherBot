@@ -1,4 +1,4 @@
-const BOT_TOKEN = "1809144508:AAGHtHMWAC_dmtSZ-F9Lqd26lD4vnmtUk0w";
+Justconst BOT_TOKEN = process.env.BOT_TOKEN;
 const {Telegraf, Composer, Scenes, Markup, session} = require('telegraf');
 const nodeFetch = require("node-fetch");
 const {startWizard, titleStep} = require("./Weather");
