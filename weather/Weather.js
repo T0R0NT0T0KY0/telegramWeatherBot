@@ -11,6 +11,18 @@ const helper = new OpenWeatherMapHelper(
 	}
 );
 
+const resolve = async (result, ctx) => {
+	helper.getCurrentWeatherByCityName(result,
+		async (err, currentWeather) => {
+			if (err) {
+				await ctx.reply("нет информации о таком городе, попробуйте другой");
+				await ctx.scene.reenter();
+			} else {
+				await ctx.reply(await parseWeatherInformation(currentWeather));
+			}
+		});
+};
+
 //---Запускаем Wizard Scene---
 //
 const startWizard = new Composer();
@@ -42,16 +54,13 @@ titleStep.on('text', async (ctx) => {
 		await ctx.scene.leave();
 	}
 	
+	if(/[a-z]+/i.test(currCity)){
+		await resolve(currCity, ctx);
+		return ctx.scene.leave();
+	}
+	
 	translateText(currCity, 'en')
-		.then(result => helper.getCurrentWeatherByCityName(result,
-			async (err, currentWeather) => {
-				if (err) {
-					await ctx.reply("нет информации о таком городе, попробуйте другой");
-					await ctx.scene.reenter();
-				} else {
-					await ctx.reply(await parseWeatherInformation(currentWeather));
-				}
-			}))
+		.then(result => resolve(result, ctx))
 		.catch(error => error.message);
 	return ctx.scene.leave();
 });
