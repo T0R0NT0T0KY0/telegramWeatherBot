@@ -4,7 +4,6 @@ const WEATHER_TOKEN = process.env.WEATHER_KEY;
 const translateText = require("./Translate.js");
 
 
-
 const helper = new OpenWeatherMapHelper(
 	{
 		APPID: WEATHER_TOKEN,
@@ -22,10 +21,24 @@ startWizard.on('text', async ctx => {
 
 
 const titleStep = new Composer();
+
+parseWeatherInformation = async obj => {
+	
+	let text =
+`Привет, сейчас за бортом твоего дома ${obj["weather"][0]["main"]}
+Температура: ${obj["main"]["temp"]}℃\n`;
+	
+	if (Math.abs(obj["main"]["feels_like"] - obj["main"]["temp"]) > 2) {
+		text += `Чувствуется на: ${obj["main"]["feels_like"]}\n`
+	}
+	
+	return text + `Влажность: ${obj["main"]["humidity"]} %`;
+}
+
 titleStep.on('text', async (ctx) => {
 	const currCity = ctx.message.text;
 	
-	if (currCity === "exit"){
+	if (currCity === "exit") {
 		await ctx.scene.leave();
 	}
 	
@@ -36,7 +49,7 @@ titleStep.on('text', async (ctx) => {
 					await ctx.reply("нет информации о таком городе, попробуйте другой");
 					await ctx.scene.reenter();
 				} else {
-					await ctx.reply(currentWeather);
+					await ctx.reply(await parseWeatherInformation(currentWeather));
 				}
 			}))
 		.catch(error => error.message);
