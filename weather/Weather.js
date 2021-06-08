@@ -11,6 +11,19 @@ const helper = new OpenWeatherMapHelper(
 	}
 );
 
+parseWeatherInformation = async obj => {
+	
+	let text =
+		`Привет, сейчас за бортом твоего дома ${obj["weather"][0]["main"]}
+Температура: ${obj["main"]["temp"]}℃\n`;
+	
+	if (Math.abs(obj["main"]["feels_like"] - obj["main"]["temp"]) > 2) {
+		text += `Чувствуется на: ${obj["main"]["feels_like"]}\n`
+	}
+	
+	return text + `Влажность: ${obj["main"]["humidity"]} %`;
+}
+
 const resolve = async (result, ctx) => {
 	helper.getCurrentWeatherByCityName(result,
 		async (err, currentWeather) => {
@@ -25,29 +38,16 @@ const resolve = async (result, ctx) => {
 
 //---Запускаем Wizard Scene---
 //
-const startWizard = new Composer();
-startWizard.on('text', async ctx => {
+const firstScene = new Composer();
+firstScene.on('text', async ctx => {
 	await ctx.reply("Отправь мне название своего города, а я тебе погоду в нем:");
 	return ctx.wizard.next();
 });
 
 
-const titleStep = new Composer();
+const lastScene = new Composer();
 
-parseWeatherInformation = async obj => {
-	
-	let text =
-`Привет, сейчас за бортом твоего дома ${obj["weather"][0]["main"]}
-Температура: ${obj["main"]["temp"]}℃\n`;
-	
-	if (Math.abs(obj["main"]["feels_like"] - obj["main"]["temp"]) > 2) {
-		text += `Чувствуется на: ${obj["main"]["feels_like"]}\n`
-	}
-	
-	return text + `Влажность: ${obj["main"]["humidity"]} %`;
-}
-
-titleStep.on('text', async (ctx) => {
+lastScene.on('text', async (ctx) => {
 	const currCity = ctx.message.text;
 	
 	if (currCity === "exit") {
@@ -65,4 +65,4 @@ titleStep.on('text', async (ctx) => {
 	return ctx.scene.leave();
 });
 
-module.exports = {startWizard, titleStep};
+module.exports = {weatherFS: firstScene, weatherLS: lastScene};
