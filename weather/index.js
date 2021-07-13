@@ -28,6 +28,27 @@ bot.start(ctx => ctx.reply(`Привет ${ctx.message.from.username}, я оче
 bot.help(ctx => ctx.reply("список комманд:\n" +
 	"/weather узнать погоду в городе\n"));
 
+bot.on("photo", async ctx => {
+    const photoURL = ctx.message.photo[0].file_id;
+    const photoURLEnd = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/getFile?file_id=${photoURL}`;
+    
+    await nodeFetch(photoURLEnd)
+        .then(res => res.text())
+        .then(text => {
+            const matcher = text.match(/[a-zA-Z]*\/[a-zA-Z0-9_]*.[a-zA-Z]*/g);
+            
+            ctx.replyWithPhoto({
+                    url: `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${matcher}`
+                    
+                },
+                {
+                    caption: `<i>крутое фото</i>`,
+                    parse_mode: `HTML`
+                    
+                });
+            
+        });
+});
 
 bot.on("message", async ctx =>
 	await ctx.reply("такой команды нет, используй /help"));
