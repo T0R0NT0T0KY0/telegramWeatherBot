@@ -7,11 +7,17 @@ const fetchGetJson = async url => {
 };
 
 const fetchPostJson = async (url, json) => {
-    return await fetch(url, {
-        method: `POST`,
-        body: JSON.stringify(json),
-    }).then(res => res.json())
-        .catch(err => err.message)
+    return await new Promise(async (resolve, reject) => {
+        await fetch(url, {
+            method: `POST`,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json),
+        }).then((res) => resolve(res))
+            .catch(err => reject(err.message));
+    });
 };
 
 module.exports = {fetchPostJson, fetchGetJson};
