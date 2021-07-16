@@ -16,15 +16,17 @@ const helper = new OpenWeatherMapHelper(
 );
 
 const answer = async (inf) => {
-    let args = `Привет, сегодня ${week[new Date(inf.updatedAt).getDay()]} за бортом твоего дома `;
+    let args = `Привет, сегодня ${week[new Date(inf.updatedAt).getDay()]}, в ${inf.city} `+
+     `${await translateText(inf.weather, 'ru')
+        .catch(()=>"")}\n`;
     
-    args += await translateText(inf.weather + "", 'ru')
-        .then(result => result + "\n")
-        .catch(() => inf.weather);
+    // args += await translateText(inf.weather + "", 'ru')
+    //     .then(result => result + "\n")
+    //     .catch(() => inf.weather);
     
     args += `Температура ${inf.temperature}°C\n`;
     
-    if (inf.temperature !== inf.fill_temperature) {
+    if (Math.abs(inf.temperature - inf.fill_temperature) >= 1) {
         args += `Ощущается на ${inf.fill_temperature}°C\n`;
     }
     
@@ -70,12 +72,11 @@ const lastScene = new Composer();
 const getWeatherFromDB = async (city) => {
     const information = await fetchGetJson(`http://${host}:${port}/api/city/${city}`)
         .catch(error => console.log(error));
-    if (information) {//&& information.updatedAt + 600000 <= Date.now()
-        console.log("было в БД");
-        return information;
+    try {
+        return  JSON.parse(information);
+    } catch (e) {
+        return  null;
     }
-    console.log("не было в БД")
-    return null;
 }
 
 lastScene.on('text', async (ctx) => {
@@ -86,15 +87,15 @@ lastScene.on('text', async (ctx) => {
         console.log(city);
     }
     
-    let res = JSON.parse(await getWeatherFromDB(city));
-    console.log(res);
+    let res = await getWeatherFromDB(city);
+    
     if (!res) { // если нет в БД
-        
         res = await getWeather(city);
         if (!res) {
             await ctx.scene.reenter();
         }
-        console.log(await fetchPostJson(`http://${host}:${port}/api/city`, res));
+        console.log(await fetchPostJson(`http://${host}:${port}/api/city`, res)
+            .catch(e => e));
         // ложим в бд
     }
     

@@ -4,7 +4,6 @@ require('dotenv').config();
 const {weatherFS, weatherLS} = require("./Weather");
 const translateText = require("./Translate");
 const BOT_TOKEN = process.env.BOT_TOKEN;
-
 const bot = new Telegraf(BOT_TOKEN);
 
 
