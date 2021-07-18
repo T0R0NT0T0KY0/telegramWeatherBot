@@ -2,7 +2,7 @@ const {Telegraf, Composer, Scenes, Markup, session} = require('telegraf');
 const OpenWeatherMapHelper = require("openweathermap-node");
 const WEATHER_TOKEN = process.env.WEATHER_KEY;
 const translateText = require("./Translate.js");
-const {fetchPostJson, fetchGetJson} = require("./fetch/fetch");
+const {fetchPostJson, fetchGetJson, fetchUpdate} = require("./fetch/fetch");
 const host = process.env.HOST;
 const port = process.env.PORT;
 
@@ -37,17 +37,17 @@ const getWeather = async (city) => {
                 if (err) {
                     return res(null);
                 }
+                const date = new Date();
                 return res({
                     id: currentWeather["id"],
                     city: currentWeather["name"],
-                    updatedAt: new Date(),
-                    createdAt: new Date(),
+                    updatedAt: date,
+                    createdAt: date,
                     weather: currentWeather["weather"][0]["main"],
                     temperature: currentWeather["main"]["temp"],
                     fill_temperature: currentWeather["main"]["feels_like"],
                     humidity: currentWeather["main"]["humidity"],
                 });
-                
             });
     });
     
@@ -71,7 +71,7 @@ const getWeatherFromDB = async (city) => {
 }
 
 function isFresh (res) {
-    return new Date(res.updatedAt) - new Date().valueOf() <= 500000;
+    return new Date().valueOf() - new Date(res.updatedAt).valueOf() <= 500000;
 }
 
 lastScene.on('text', async (ctx) => {
@@ -83,9 +83,11 @@ lastScene.on('text', async (ctx) => {
     
     let res = await getWeatherFromDB(city);
     
-    if (res && !isFresh(res)) {
-        //todo update information
-        // res = fetchUpdate()
+    const b = !isFresh(res);
+    if (res && b) {
+        res = await getWeather(city);
+        await fetchUpdate(`http://${host}:${port}/api/city`, res)
+            .catch(e => console.log(e));
     }
     if (!res) { // если нет в БД
         res = await getWeather(city);
