@@ -53,4 +53,11 @@ bot.on("message", async ctx =>
 	await ctx.reply("такой команды нет, используй /help"));
 
 
-bot.launch();
+exports.handler = (event, context, callback) => {
+    bot.handleUpdate(JSON.parse(event.body));
+    
+    return callback(null, {
+        statusCode: 200,
+        body: '',
+    });
+};
