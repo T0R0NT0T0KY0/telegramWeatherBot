@@ -1,8 +1,7 @@
-const {Telegraf, Composer, Scenes, Markup, session} = require('telegraf');
+const {Telegraf, Scenes, session} = require('telegraf');
 const nodeFetch = require("node-fetch");
 require('dotenv').config();
-const {weatherFS, weatherLS} = require("./Weather");
-const translateText = require("./Translate");
+const {weatherFS, weatherLS} = require("./resources/Weather");
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 

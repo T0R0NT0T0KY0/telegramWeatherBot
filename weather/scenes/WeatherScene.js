@@ -1,19 +1,11 @@
-const {Telegraf, Composer, Scenes, Markup, session} = require('telegraf');
-const OpenWeatherMapHelper = require("openweathermap-node");
-const WEATHER_TOKEN = process.env.WEATHER_KEY;
-const translateText = require("./Translate.js");
-const {fetchPostJson, fetchGetJson, fetchUpdate} = require("./fetch/fetch");
+const {Composer} = require('telegraf');
+const {getWeather} = require("../resources/Weather");
+const translateText = require("../resources/Translate.js");
+const {fetchPostJson, fetchGetJson, fetchUpdate} = require("../fetch/fetch");
 const host = process.env.HOST;
 const port = process.env.PORT;
 
 const week = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"];
-
-const helper = new OpenWeatherMapHelper(
-    {
-        APPID: WEATHER_TOKEN,
-        units: "metric"
-    }
-);
 
 const answer = async (inf) => {
     let args = `Привет, сегодня ${week[new Date(inf.updatedAt).getDay()]}, в ${inf.city} ` +
@@ -29,31 +21,6 @@ const answer = async (inf) => {
     return args + `Влажность ${inf.humidity}%`;
 };
 
-const getWeather = async (city) => {
-    return await new Promise(async (res, rej) => {
-        
-        await helper.getCurrentWeatherByCityName(city,
-            async (err, currentWeather) => {
-                if (err) {
-                    return res(null);
-                }
-                const date = new Date();
-                return res({
-                    id: currentWeather["id"],
-                    city: currentWeather["name"],
-                    updatedAt: date,
-                    createdAt: date,
-                    weather: currentWeather["weather"][0]["main"],
-                    temperature: currentWeather["main"]["temp"],
-                    fill_temperature: currentWeather["main"]["feels_like"],
-                    humidity: currentWeather["main"]["humidity"],
-                });
-            });
-    });
-    
-};
-
-
 //---Запускаем Wizard Scene---
 //
 const firstScene = new Composer();
@@ -64,11 +31,11 @@ firstScene.on('text', async ctx => {
 
 
 const lastScene = new Composer();
-
 const getWeatherFromDB = async (city) => {
     const text = await fetchGetJson(`http://${host}:${port}/api/city/${city}`);
     return text ? JSON.parse(text) : null;
 }
+
 
 function isFresh (res) {
     return new Date().valueOf() - new Date(res.updatedAt).valueOf() <= 500000;
